@@ -144,6 +144,7 @@ The following are optional configuration parameters supported in the `options` h
 
 `:ssl_verify`: Specify whether to verify SSL certificates (default: true)
 
+`stop_if_error`: Whether the entire lookup should be failed in the case of an HTTP error response while performing a lookup. Set this to true if it is preferable for the whole Puppet run to fail in the case of e.g. a `403 permission denied` or other error response from Vault (except `404`), instead of just returning a `not_found` result. (default: false)
 
 ### Debugging
 

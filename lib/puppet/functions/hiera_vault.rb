@@ -85,6 +85,8 @@ Puppet::Functions.create_function(:hiera_vault) do
       raise ArgumentError, "[hiera-vault] invalid value for default_field_behavior: '#{options['default_field_behavior']}', should be one of 'ignore','only'"
     end
 
+    stop_if_error = options['stop_if_error'] || false
+
     begin
       $vault.configure do |config|
         config.address = options['address'] unless options['address'].nil?
@@ -133,9 +135,19 @@ Puppet::Functions.create_function(:hiera_vault) do
         begin
           secret = $vault.logical.read(secretpath)
         rescue Vault::HTTPConnectionError
-          context.explain { "[hiera-vault] Could not connect to read secret: #{secretpath}" }
+          err_msg = "[hiera-vault] Could not connect to read secret: #{secretpath}"
+          if stop_if_error
+            raise Puppet::DataBinding::LookupError, err_msg
+          else
+            context.explain { err_msg }
+          end
         rescue Vault::HTTPError => e
-          context.explain { "[hiera-vault] Could not read secret #{secretpath}: #{e.errors.join("\n").rstrip}" }
+          err_msg = "[hiera-vault] Could not read secret #{secretpath}: #{e.errors.join("\n").rstrip}"
+          if stop_if_error
+            raise Puppet::DataBinding::LookupError, err_msg
+          else
+            context.explain { err_msg }
+          end
         end
 
         next if secret.nil?

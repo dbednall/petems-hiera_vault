@@ -46,6 +46,13 @@ describe FakeFunction do
 
   describe '#lookup_key' do
     context 'accessing vault' do
+
+      it 'should error when stop_if_error is true and vault response is error' do
+        # passing invalid token causes 403 permission denied, but all possible error responses except 404 would raise
+        expect { function.lookup_key('test_key', vault_options.merge({'token' => 'foo', 'stop_if_error' => true}), context) }
+          .to raise_error(Puppet::DataBinding::LookupError, /Could not read secret puppet\/common\/test_key: permission denied/)
+      end
+
       context 'supplied with invalid parameters' do
         it 'should error when default_field_parse is not in [ string, json ]' do
           expect { function.lookup_key('test_key', vault_options.merge('default_field_parse' => 'invalid'), context) }
